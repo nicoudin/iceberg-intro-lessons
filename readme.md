@@ -19,9 +19,10 @@ __FORK__ a nuestro repositorio y luego __GIT CLONE URL:REPO__
 
 1. [Creacion del entorno]()
     1. [Estructura de directorios]()
-2. [Ejecución de una notebook]()
+2. [Seteo de Spark y Librerias]()
+3. [Ejecución de una notebook]()
     - [Ejecutar desde un cluster de Spark]()
-3. [Trabajar con Branching y Merging]()
+4. [Trabajar con Branching y Merging]()
 
 
 ## 1. Creación del entorno
@@ -56,7 +57,56 @@ Desde una notebbok con spark podemos guardar un archivo en uno de los volumenes 
 csv_df.write.format('csv').save('/home/docker/warehouse/miData.csv')
 ```
 
-## 2. Ejecución de notebook.
+## 2. Seteo de Spark y Librerias
+
+Para poder usar Spark con Iceberg , MINIO y nessie debemos configurarlo para indicarle donde encontrar cada componente.
+
+```python
+import pyspark
+import pyspark
+from pyspark.sql import SparkSession
+import os
+
+## DEFINE SENSITIVE VARIABLES
+NESSIE_URI = "http://nessie:19120/api/v1"
+MINIO_ACCESS_KEY = "admin"
+MINIO_SECRET_KEY = "password"
+```
+
+Para poder acceder a MINIO debemos crear un __Bucket__ que en este ejejplo se va a llamar __warehouse__ y debemos crear una clave/valor para poder acceder. Aunque tambien podemos acceder con las credenciales por defecto.
+
+```python
+conf = (
+    pyspark.SparkConf()
+        .setAppName('app_name')
+  		#packages
+        .set('spark.jars.packages', 'org.apache.iceberg:iceberg-spark-runtime-3.3_2.12:1.3.1,org.projectnessie.nessie-integrations:nessie-spark-extensions-3.3_2.12:0.67.0,software.amazon.awssdk:bundle:2.17.178,software.amazon.awssdk:url-connection-client:2.17.178')
+  		#SQL Extensions
+        .set('spark.sql.extensions', 'org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions,org.projectnessie.spark.extensions.NessieSparkSessionExtensions')
+  		#Configuring Catalog
+        .set('spark.sql.catalog.nessie', 'org.apache.iceberg.spark.SparkCatalog')
+        .set('spark.sql.catalog.nessie.uri', NESSIE_URI)
+        .set('spark.sql.catalog.nessie.ref', 'main')
+        .set('spark.sql.catalog.nessie.authentication.type', 'NONE')
+        .set('spark.sql.catalog.nessie.catalog-impl', 'org.apache.iceberg.nessie.NessieCatalog')
+        .set('spark.sql.catalog.nessie.warehouse', 's3a://warehouse')
+        .set('spark.sql.catalog.nessie.s3.endpoint', 'http://minio:9000')
+        .set('spark.sql.catalog.nessie.io-impl', 'org.apache.iceberg.aws.s3.S3FileIO')
+  		#MINIO CREDENTIALS
+        .set('spark.hadoop.fs.s3a.access.key', MINIO_ACCESS_KEY)
+        .set('spark.hadoop.fs.s3a.secret.key', MINIO_SECRET_KEY)
+)
+```
+
+Una vez establecidos las rutas y los packages podemos instanciar una sesión de Spark y empezar a trabajar.
+
+```python
+## Start Spark Session
+spark = SparkSession.builder.config(conf=conf).getOrCreate()
+print("Spark Running")
+```
+
+## 3. Ejecución de notebook.
 
 Para ejecutar una notebook vamos a usar la URL que nos devuelve DOCKER.
 
@@ -114,7 +164,7 @@ python3 ejecucion_sobre_cluster.py
 
 ![](./img/iceberg-03.png)
 
-## 3. Trabajar con Branching y Merging
+## 4. Trabajar con Branching y Merging
 
 Saber trabajar con Branching en Iceberg y Nessie es muy importante ya que nos permite hacer cambios sin tocar los datos originales y luego hacer Merging si es neecsario o volver a la version original
 
