@@ -24,6 +24,8 @@ __FORK__ a nuestro repositorio y luego __GIT CLONE URL:REPO__
     - [Ejecutar desde un cluster de Spark]()
 4. [Trabajar con Branching y Merging]()
 5. [Trabajar con Partitioning]()
+6. [Conectar Dremio y Nessie]()
+7. [Usar Dremio + Nessie]()
 
 
 ## 1. Creación del entorno
@@ -243,6 +245,79 @@ spark.sql("CALL nessie.system_rewrite_data_files ('df_open_2023_lesson2')").show
 En este ejemplo vamos a hacer una repartición de todo el set de datos  
 pero tambien podemos particionar solo una partición específica lo que sería igual a una SUBPARTICION.
 Por ejemplo a la Particion de US (Estados Unidos) podemos agregarle una SubPartición por Edad.
+```
+
+## 6. Conectar Dremio y Nessie
+
+Para conectar Dremio y Nessie podemos usar el tutorial [Tutorial de conexión Dremio y Nessie](https://dev.to/alexmercedcoder/data-engineering-create-a-apache-iceberg-based-data-lakehouse-on-your-laptop-41a8)
+
+Para configurar Dremio primero debemos logearnos en el entorno web.
+[http://localhost:9047/](http://localhost:9047/)
+
+![](./img/iceberg-04.png)
+
+__IMPORTANTE__ si bien en Spark usamos como __ENDPOINT__ de nessie la url _http://nessie:19120/api/v1_ en Dremio debemos usar _http://nessie:19120/api/v2_
+
+Una vez configurado Nessie debemos configurar el acceso al Storage, recordando que MINIO es AWS S3.
+
+![](./img/iceberg-05.png)
+
+Y por ultimo configuramos los accesos restantes 
+
+![](./img/iceberg-06.png)
+
+__Con esto configurado ya deberiamos ver la conexión en Dremio con el nombre nessie y las tablas que creamos en ICEBERG y las distintas BRANCHES__
+
+![](./img/iceberg-07.png)
+
+Podemos probar ejecutar una query. SIempre teniendo en cuenta el contexto sobre el que estamos ejecutan la query.
+
+```sql
+SELECT distinct countryOfOriginCode, count(*) FROM nessie."df_open_2023_lesson2"
+group by countryOfOriginCode
+```
+
+__Tambien podemos importar los directorios del warehouse que están en MINIO__
+
+## 7. Dremio + Iceberg
+
+```
+Desde dremio podemos hacer lo mismo que hacemos con Spark
+Por ejemplo podemos Crear nuevas tablas en el catálogo de Nessie, podemos particionar, etc.
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS nessie.mi_tabla_de_prueba
+(
+    id INTEGER,
+    nombre VARCHAR
+);
+
+INSERT INTO nessie.mi_tabla_de_prueba(id, nombre) values (1, 'Nicolas');
+INSERT INTO nessie.mi_tabla_de_prueba(id, nombre) values (2, 'Patricio');
+INSERT INTO nessie.mi_tabla_de_prueba(id, nombre) values (3, 'Martin');
+
+
+```
+
+![](./img/iceberg-08.png)
+
+A la tabla que creamos le podemos hacer una Query con DML o DDL y ver los datos ene l Catálogo.
+
+
+![](./img/iceberg-09.png)
+
+Otros usos de Dremio
+---------------
+
+Tambien podemos crear __BRANCHES__ dentro de DREMIO y hacer merge. Por ejemplo
+
+```sql
+CREATE BRANCH dremio IN nessie;
+USE BRANCH dremio IN nessie;
+INSERT INTO nessie.tabla(id, nombre) VALUES (1,'Nicolas');
+USE BRANCH main IN nessie;
+MERGE BRANCH dremio IN main INTO nessie;
 ```
 
 
