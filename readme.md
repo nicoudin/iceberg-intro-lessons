@@ -26,6 +26,7 @@ __FORK__ a nuestro repositorio y luego __GIT CLONE URL:REPO__
 5. [Trabajar con Partitioning]()
 6. [Conectar Dremio y Nessie]()
 7. [Usar Dremio + Nessie]()
+8. [Reflection - Optimization]()
 
 
 ## 1. Creación del entorno
@@ -319,6 +320,20 @@ INSERT INTO nessie.tabla(id, nombre) VALUES (1,'Nicolas');
 USE BRANCH main IN nessie;
 MERGE BRANCH dremio IN main INTO nessie;
 ```
+
+## 8. Reflection
+
+Usamos reflection cuando pensamos que el DataSet que estamos utilizando no tiene la suficiente performance. __Reflection no es algo propio de ICEBERG, sinó que es una Feature de Dremio para ICEBERG__ aunque se puede usar en otros motores también.
+
+Hay dos formas de hacer reflection.
+
+__RAW REFLECTION__ Lo que hace es crear una version de ICEBERG del resultado de la query. Es una materialización de una Query.
+
+__AGGREGATE REFLECTION__ Es útil cuando tenemos querys de BI con agregaciones y Medidas.
+
+
+
+
 
 
 ## Directions
