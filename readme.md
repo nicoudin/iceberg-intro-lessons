@@ -240,7 +240,7 @@ spark.sql("CALL nessie.system_rewrite_data_files ('df_open_2023_lesson2')").show
 ```
 
 ```
-En este ejemplo vamos a hacer una repartición de todo el set de datos 
+En este ejemplo vamos a hacer una repartición de todo el set de datos  
 pero tambien podemos particionar solo una partición específica lo que sería igual a una SUBPARTICION.
 Por ejemplo a la Particion de US (Estados Unidos) podemos agregarle una SubPartición por Edad.
 ```
