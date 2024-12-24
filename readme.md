@@ -1,4 +1,4 @@
-# DataLake with ICEBERG, NESSIE, DREMIO & MINIO usin PySpark
+# DataLake with ICEBERG, NESSIE, DREMIO & MINIO using PySpark
 
 
 ```
@@ -23,6 +23,7 @@ __FORK__ a nuestro repositorio y luego __GIT CLONE URL:REPO__
 3. [Ejecución de una notebook]()
     - [Ejecutar desde un cluster de Spark]()
 4. [Trabajar con Branching y Merging]()
+5. [Trabajar con Partitioning]()
 
 
 ## 1. Creación del entorno
@@ -177,6 +178,13 @@ df_spark = spark.read.csv('./datasets/df_open_2011.csv').\
 df_spark.createOrReplaceTempView('df_spark')
 ```
 
+- Segundo creamos la tabla en ICEBERG
+
+```python
+spark.sql("CREATE TABLE IF NOT EXISTS nessie.df_open_2023_lesson USING ICEBERG PARTITIONED BY (columna) as SELECT * FROM df_spark OREDR BY \
+columna;")
+```
+
 - Paso Uno: Creamos una Branch 
 
 
@@ -210,6 +218,33 @@ spark.sql("REFERENCE main IN nessie;")
 ```python
 spark.sql("MERGE BRANCH lesson INTO main IN nessie;")
 ```
+
+## 5. Trabajar con Partitioning.
+
+Usamos Partitioning cuando queremos organizar los datos de una manera más natural para ser accedidos. Podemos crear una partición desde cero o agregar una partición a una tabla ya particionada.
+
+```
+Una vez cargados los datos en un DataFrame de Spark y creada la vista Temporal podemos crear una tabla de ICEBERG con las particiones que querramos.
+```
+
+A una tabla existente vamos a agregar una nueva partición.
+
+```python
+spark.sql("ALTER TABLE nessie.df_open_2023_lesson3 ADD PARTITION FIELD truncate(1, columna);")
+```
+
+Para que estos cambios sean efectivos es necesario __REESCRIBIR LA TABLA__ usando el método __CALL PROCEDURE__
+
+```python
+spark.sql("CALL nessie.system_rewrite_data_files ('df_open_2023_lesson2')").show()
+```
+
+```
+En este ejemplo vamos a hacer una repartición de todo el set de datos 
+pero tambien podemos particionar solo una partición específica lo que sería igual a una SUBPARTICION.
+Por ejemplo a la Particion de US (Estados Unidos) podemos agregarle una SubPartición por Edad.
+```
+
 
 ## Directions
 
