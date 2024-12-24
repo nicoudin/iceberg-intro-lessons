@@ -20,6 +20,7 @@ __FORK__ a nuestro repositorio y luego __GIT CLONE URL:REPO__
 1. [Creacion del entorno]()
     1. [Estructura de directorios]()
 2. [Ejecución de una notebook]()
+    - [Ejecutar desde un cluster de Spark]()
 
 
 ## 1. Creación del entorno
@@ -69,6 +70,48 @@ Para ejecutar una notebook vamos a usar la URL que nos devuelve DOCKER.
  __Recordar que la misma puede cambiar con el tiempo__
 
  Cualquier código que ejecutemos desde esta notebook va a estar conectado al cluster de Spark.
+
+ ## Ejecutar desde un Cluster de Spark
+
+ Si bien la Notebook ejecuta sobre un cluster de Spark y el mismo está configuardo para usar el catalogo Nessie para acceder a las tablas de Apache Iceberg tambien podemos ejecutar un __archivo .py__ directamente dentro del cluster con el mismo resultado.
+
+ - Paso 1.
+
+ Creamos un archivo .py llamado ejecucion_sobre_cluster.py y lo vamos a copiar al contenedor de Spark.
+
+Este archivo hace lo mismo que la notebook pero creamos una nueva tabla en Iceberg. __2024__
+
+- Paso 2
+
+Debemos copiar el archivo desde nuestro equipo al contenedor de Docker donde se guardan los scripts ejecutables.
+
+Ingresamos al contenedor de Spark
+---------------------------------
+
+```
+docker ps
+
+docker exec -it 5ce3febe3f95 /bin/bash
+```
+
+Copiamos el archivo
+-------------------
+
+desde nuestro directorio local al contenedor de Spark.
+
+```
+docker cp ejecucion_sobre_cluster.py 5ce3febe3f95:/home/docker/notebooks/ejecucion_sobre_cluster.py
+```
+
+- Paso 3.
+
+Con el archivo copiado podemos ejecutarlo dentro del cluster de Spark
+
+```
+python3 ejecucion_sobre_cluster.py
+```
+
+![](./img/iceberg-03.png)
 
 ## Directions
 
