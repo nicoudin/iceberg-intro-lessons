@@ -119,7 +119,7 @@ python3 ejecucion_sobre_cluster.py
 Saber trabajar con Branching en Iceberg y Nessie es muy importante ya que nos permite hacer cambios sin tocar los datos originales y luego hacer Merging si es neecsario o volver a la version original
 
 - Primero debemos tener una View Creada.
----------------------------------------
+
 
 ```python
 df_spark = spark.read.csv('./datasets/df_open_2011.csv').\
@@ -128,43 +128,38 @@ df_spark.createOrReplaceTempView('df_spark')
 ```
 
 - Paso Uno: Creamos una Branch 
------------
+
 
 ```python
 spark.sql("CREATE BRANCH IF NOT EXISTS lesson in nessie;")
 ```
 
 - Paso Dos: Nos posicionamos sobre la Branch __lesson__
----------------
+
 
 ```python
 spark.sql("USE REFERENCE lesson IN nessie;")
 ```
 
 - Paso Tres: Hacemos algún cambio
----------
+
 
 ```python
 spark.sql("DELETE FROM nessie.df_tabla WHERE columna ='xx';")
 ```
 
 - Paso Cuatro: Volvemos a la branc original
-------------
+
 
 ```python
 spark.sql("REFERENCE main IN nessie;")
 ```
 
 - Paso 5: Si los cambios nos sirven hacemos un MERGING
---------------
 
 ```python
 spark.sql("MERGE BRANCH lesson INTO main IN nessie;")
 ```
-
-
-
-
 
 ## Directions
 
